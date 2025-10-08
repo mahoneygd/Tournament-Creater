@@ -1,0 +1,143 @@
+let players = [];
+let queue = [];
+let activeMatches = [];
+let standings = {};
+let tables = 6;
+let maxConsecutiveWins = 2; // New rule: max amount of games won in a row before being kicked off
+
+function startTournament() {
+  const input = document.getElementById("playerNames").value.trim();
+  if (!input) return alert("Please enter player names first!");
+
+  players = input.split("\n").map((name) => name.trim()).filter(Boolean);
+  tables = parseInt(document.getElementById("activeGames").value) || 1;
+  maxConsecutiveWins = parseInt(document.getElementById("maxConsecutiveWins").value) || 2;
+
+  if (players.length < 2) return alert("At least two players are required to start the tournament.");
+  if (tables < 1) tables = 1;
+  if (tables > Math.floor(players.length / 2)) tables = Math.floor(players.length / 2);
+
+  queue = [...players];
+  activeMatches = [];
+  standings = {};
+
+  // Initialize standings and consecutive wins
+  players.forEach((p) => {
+    standings[p] = { wins: 0, games: 0, consecutive: 0 };
+  });
+
+  startNextMatches();
+  render();
+}
+
+function startNextMatches() {
+  while (activeMatches.length < tables && queue.length >= 2) {
+    const player1 = queue.shift();
+    const player2 = queue.shift();
+    activeMatches.push({ player1, player2 });
+  }
+  render();
+}
+
+function reportResult(index, winnerName) {
+  const match = activeMatches[index];
+  if (!match) return;
+
+  const loserName = match.player1 === winnerName ? match.player2 : match.player1;
+  const winner = standings[winnerName];
+  const loser = standings[loserName];
+
+  // Update stats
+  winner.wins++;
+  winner.games++;
+  loser.games++;
+
+  // Update consecutive wins
+  winner.consecutive++;
+  loser.consecutive = 0; // reset for loser
+
+  // --- New rule: winner gets kicked after amount of games won in a row ---
+  if (winner.consecutive >= 2) {
+    winner.wins++; // bonus win for achieving max amount of games won in a row
+    queue.push(winnerName);
+    queue.push(loserName);
+    winner.consecutive = 0; // reset after being kicked off
+  } else {
+    // Normal rule: winner stays, loser goes to queue
+    queue.push(loserName);
+    // Winner stays on, so reinsert winner to start next match
+    activeMatches.push({ player1: winnerName, player2: queue.shift() });
+  }
+
+  // Remove finished match
+  activeMatches.splice(index, 1);
+
+  startNextMatches();
+  render();
+}
+
+function render() {
+  renderQueue();
+  renderMatches();
+  renderStandings();
+}
+
+function renderQueue() {
+  const queueList = document.getElementById("queueList");
+  queueList.innerHTML = "";
+  queue.forEach((p, i) => {
+    const li = document.createElement("li");
+    li.className = "list-group-item";
+    li.textContent = `${i + 1}. ${p}`;
+    queueList.appendChild(li);
+  });
+}
+
+function renderMatches() {
+  const matchArea = document.getElementById("matchArea");
+  matchArea.innerHTML = "";
+
+  activeMatches.forEach((m, index) => {
+    const card = document.createElement("div");
+    card.className = "card mb-3";
+    card.innerHTML = `
+      <div class="card-body">
+        <h5 class="card-title">Match ${index + 1}</h5>
+        <p class="card-text">${m.player1} vs ${m.player2}</p>
+        <button class="btn btn-success me-2" onclick="reportResult(${index}, '${m.player1}')">${m.player1} Wins</button>
+        <button class="btn btn-success" onclick="reportResult(${index}, '${m.player2}')">${m.player2} Wins</button>
+      </div>
+    `;
+    matchArea.appendChild(card);
+  });
+}
+
+function renderStandings() {
+  const standingsBody = document.getElementById("standingsBody");
+  const sorted = Object.entries(standings).sort(
+    (a, b) => b[1].wins - a[1].wins
+  );
+  standingsBody.innerHTML = "";
+  sorted.forEach(([player, stats], i) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${i + 1}</td>
+      <td>${player}</td>
+      <td>${stats.wins}</td>
+      <td>${stats.games}</td>
+    `;
+    standingsBody.appendChild(tr);
+  });
+}
+
+function resetTournament() {
+  players = [];
+  queue = [];
+  activeMatches = [];
+  standings = {};
+  tables = 1;
+  document.getElementById("playerNames").value = "";
+  document.getElementById("matchArea").innerHTML = "";
+  document.getElementById("queueList").innerHTML = "";
+  document.getElementById("standingsBody").innerHTML = "";
+}
