@@ -30,6 +30,18 @@ function startTournament() {
   render();
 }
 
+function addPlayer() {
+    const playerName = document.getElementById("newPlayer").value;
+    if (!playerName) return alert("Please enter a player name.");
+    if (players.includes(playerName)) return alert("Player already exists.");
+    players.push(playerName);
+    queue.push(playerName);
+    standings[playerName] = { wins: 0, games: 0, consecutive: 0 };
+    document.getElementById("newPlayer").value = "";
+    renderQueue();
+    renderStandings();
+}
+
 function startNextMatches() {
   while (activeMatches.length < tables && queue.length >= 2) {
     const player1 = queue.shift();
@@ -82,13 +94,22 @@ function render() {
   renderStandings();
 }
 
+
 function renderQueue() {
   const queueList = document.getElementById("queueList");
   queueList.innerHTML = "";
   queue.forEach((p, i) => {
+    const button = document.createElement("button");
+    button.className = "btn btn-sm btn-danger float-end";
+    button.textContent = "Remove";
+    button.onclick = () => {
+      queue.splice(i, 1);
+      renderQueue();
+    };
     const li = document.createElement("li");
     li.className = "list-group-item";
     li.textContent = `${i + 1}. ${p}`;
+    li.appendChild(button);
     queueList.appendChild(li);
   });
 }

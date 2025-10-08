@@ -50,7 +50,7 @@
             >
           </div>
           <div class="col-md-3 mb-2">
-            <label for="maxWinStreak" class="form-label">Max Win Streak:</label>
+            <label for="maxConsecutiveWins" class="form-label">Max Win Streak:</label>
             <input
               type="number"
               id="maxConsecutiveWins"
@@ -58,6 +58,20 @@
               value="2"
               min="2"
             >
+          </div>
+          <div class="col-md-3 mb-2">
+            <label for="newPlayer" class="form-label">Max Win Streak:</label>
+            <input
+              type="text"
+              id="newPlayer"
+              class="form-control"
+              placeholder="New Player Name"
+            >
+            <button
+              type="button"
+              class="btn btn-primary mt-2"
+              onclick="addPlayer()"
+            >Add Player</button>
           </div>
         </div>
 
