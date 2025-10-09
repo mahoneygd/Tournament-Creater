@@ -4,6 +4,7 @@ let activeMatches = [];
 let standings = {};
 let tables = 6;
 let maxConsecutiveWins = 2; // New rule: max amount of games won in a row before being kicked off
+let history = []; // For undo functionality
 
 function startTournament() {
   const input = document.getElementById("playerNames").value.trim();
@@ -25,6 +26,7 @@ function startTournament() {
   players.forEach((p) => {
     standings[p] = { wins: 0, games: 0, consecutive: 0 };
   });
+  history.push(JSON.stringify({ players, queue, activeMatches, standings }))
 
   startNextMatches();
   render();
@@ -40,6 +42,7 @@ function addPlayer() {
     document.getElementById("newPlayer").value = "";
     renderQueue();
     renderStandings();
+    saveTournament();
 }
 
 function startNextMatches() {
@@ -49,6 +52,7 @@ function startNextMatches() {
     activeMatches.push({ player1, player2 });
   }
   render();
+    saveTournament();
 }
 
 function reportResult(index, winnerName) {
@@ -86,6 +90,32 @@ function reportResult(index, winnerName) {
 
   startNextMatches();
   render();
+    saveTournament();
+}
+
+function undoLastAction() {
+    if (history.length < 2) return alert("No actions to undo.");
+    history.pop(); // Remove current state
+    history.pop(); // Remove last action state
+    const lastState = JSON.parse(history[history.length - 1]);
+    players = lastState.players;
+    queue = lastState.queue;
+    activeMatches = lastState.activeMatches;
+    standings = lastState.standings;
+    render();
+}
+
+function saveTournament() {
+  const data = {
+    players,
+    queue,
+    activeMatches,
+    standings,
+    tables,
+    maxConsecutiveWins
+    };
+    history.push(JSON.stringify(data));
+    localStorage.setItem("tournamentData", JSON.stringify(data));
 }
 
 function render() {
@@ -161,4 +191,22 @@ function resetTournament() {
   document.getElementById("matchArea").innerHTML = "";
   document.getElementById("queueList").innerHTML = "";
   document.getElementById("standingsBody").innerHTML = "";
+  history = [];
+  render();
+  localStorage.removeItem("tournamentData");
 }
+
+window.onload = function () {
+  const saved = localStorage.getItem("tournamentData");
+  if (saved) {
+    const data = JSON.parse(saved);
+
+    // Restore state variables
+    players = data.players || [];
+    queue = data.queue || [];
+    activeMatches = data.activeMatches || [];
+    standings = data.standings || {};
+
+    render();
+  }
+};
