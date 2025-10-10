@@ -39,7 +39,7 @@ function startTournament() {
 
   startNextMatches();
   render();
-  console.log("Max Consecutive Wins set to:", maxConsecutiveWins);
+//   console.log("Max Consecutive Wins set to:", maxConsecutiveWins);
 
 }
 
@@ -90,7 +90,7 @@ function reportResult(index, winnerName) {
 
   if (maxConsecutiveWins > 0 && winner.consecutive >= maxConsecutiveWins) {
     // Winner hit max streak — both go to queue
-    console.log(`${winnerName} reached max consecutive wins of ${maxConsecutiveWins}.`);
+    // console.log(`${winnerName} reached max consecutive wins of ${maxConsecutiveWins}.`);
     winner.wins++;
     queue.push(winnerName);
     queue.push(loserName);
@@ -222,7 +222,6 @@ function resetTournament() {
 
 window.onload = function () {
   const saved = localStorage.getItem("tournamentData");
-  availableTables = Array.from({ length: data.tables || 1 }, (_, i) => i + 1);
   if (saved) {
     const data = JSON.parse(saved);
 
@@ -234,7 +233,14 @@ window.onload = function () {
     tables = data.tables || 1;
     maxConsecutiveWins = data.maxConsecutiveWins || 2;
 
+    availableTables = Array.from({ length: data.tables || 1 }, (_, i) => i + 1);
+
+
     render();
   }
+
+//   window.beforeunload = function () {
+//     localStorage.remove("tournamentData");
+//   }
 
 };
