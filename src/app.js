@@ -13,15 +13,23 @@ function startTournament() {
 
   players = input.split("\n").map((name) => name.trim()).filter(Boolean);
   tables = parseInt(document.getElementById("activeGames").value) || 1;
-  maxConsecutiveWins = parseInt(document.getElementById("maxConsecutiveWins").value) || 2;
+  maxConsecutiveWins = parseInt(document.getElementById("maxConsecutiveWins").value);
 
   if (players.length < 2) return alert("At least two players are required to start the tournament.");
-  if (tables < 1) tables = 1;
+  if (tables < 1) {
+    tables = 1;
+    document.getElementById("activeGames").value = "1";
+  }
   if (tables > Math.floor(players.length / 2)) tables = Math.floor(players.length / 2);
+  if (maxConsecutiveWins < 0) {
+    maxConsecutiveWins = 0;
+    document.getElementById("maxConsecutiveWins").value = "0";
+  }
 
   queue = [...players];
   activeMatches = [];
   standings = {};
+  availableTables = Array.from({ length: tables }, (_, i) => i + 1);
 
   // Initialize standings and consecutive wins
   players.forEach((p) => {
@@ -31,6 +39,8 @@ function startTournament() {
 
   startNextMatches();
   render();
+  console.log("Max Consecutive Wins set to:", maxConsecutiveWins);
+
 }
 
 function addPlayer() {
@@ -78,8 +88,9 @@ function reportResult(index, winnerName) {
   availableTables.push(match.table);
   availableTables.sort((a, b) => a - b);
 
-  if (winner.consecutive >= 2) {
+  if (maxConsecutiveWins > 0 && winner.consecutive >= maxConsecutiveWins) {
     // Winner hit max streak — both go to queue
+    console.log(`${winnerName} reached max consecutive wins of ${maxConsecutiveWins}.`);
     winner.wins++;
     queue.push(winnerName);
     queue.push(loserName);
@@ -204,13 +215,14 @@ function resetTournament() {
   document.getElementById("queueList").innerHTML = "";
   document.getElementById("standingsBody").innerHTML = "";
   history = [];
+  availableTables = Array.from({ length: tables }, (_, i) => i + 1);
   render();
   localStorage.removeItem("tournamentData");
-  activeTables = Array.from({ length: tables }, (_, i) => i + 1);
 }
 
 window.onload = function () {
   const saved = localStorage.getItem("tournamentData");
+  availableTables = Array.from({ length: data.tables || 1 }, (_, i) => i + 1);
   if (saved) {
     const data = JSON.parse(saved);
 
@@ -219,7 +231,10 @@ window.onload = function () {
     queue = data.queue || [];
     activeMatches = data.activeMatches || [];
     standings = data.standings || {};
+    tables = data.tables || 1;
+    maxConsecutiveWins = data.maxConsecutiveWins || 2;
 
     render();
   }
+
 };
