@@ -206,6 +206,7 @@ function resetTournament() {
   history = [];
   render();
   localStorage.removeItem("tournamentData");
+  activeTables = Array.from({ length: tables }, (_, i) => i + 1);
 }
 
 window.onload = function () {
