@@ -5,6 +5,7 @@ let standings = {};
 let tables = 6;
 let maxConsecutiveWins = 2; // New rule: max amount of games won in a row before being kicked off
 let history = []; // For undo functionality
+let availableTables = Array.from({ length: tables }, (_, i) => i + 1);
 
 function startTournament() {
   const input = document.getElementById("playerNames").value.trim();
@@ -49,7 +50,8 @@ function startNextMatches() {
   while (activeMatches.length < tables && queue.length >= 2) {
     const player1 = queue.shift();
     const player2 = queue.shift();
-    activeMatches.push({ player1, player2 });
+    const tableNumber = availableTables.shift();
+    activeMatches.push({ player1, player2, table: tableNumber });
   }
   render();
     saveTournament();
@@ -70,19 +72,29 @@ function reportResult(index, winnerName) {
 
   // Update consecutive wins
   winner.consecutive++;
-  loser.consecutive = 0; // reset for loser
+  loser.consecutive = 0;
 
-  // --- New rule: winner gets kicked after amount of games won in a row ---
+  // Free this table for reuse
+  availableTables.push(match.table);
+  availableTables.sort((a, b) => a - b);
+
   if (winner.consecutive >= 2) {
-    winner.wins++; // bonus win for achieving max amount of games won in a row
+    // Winner hit max streak — both go to queue
+    winner.wins++;
     queue.push(winnerName);
     queue.push(loserName);
-    winner.consecutive = 0; // reset after being kicked off
+    winner.consecutive = 0;
   } else {
-    // Normal rule: winner stays, loser goes to queue
+    // Winner stays — assign a new table from the available list
     queue.push(loserName);
-    // Winner stays on, so reinsert winner to start next match
-    activeMatches.push({ player1: winnerName, player2: queue.shift() });
+    const newTable = availableTables.shift(); // get the next free one
+    if (newTable !== undefined) {
+      activeMatches.push({
+        player1: winnerName,
+        player2: queue.shift(),
+        table: newTable
+      });
+    }
   }
 
   // Remove finished match
@@ -90,7 +102,7 @@ function reportResult(index, winnerName) {
 
   startNextMatches();
   render();
-    saveTournament();
+  saveTournament();
 }
 
 function undoLastAction() {
@@ -153,7 +165,7 @@ function renderMatches() {
     card.className = "card mb-3";
     card.innerHTML = `
       <div class="card-body">
-        <h5 class="card-title">Match ${index + 1}</h5>
+        <h5 class="card-title">Match ${index + 1} — Table: ${m.table}</h5>
         <p class="card-text">${m.player1} vs ${m.player2}</p>
         <button class="btn btn-success me-2" onclick="reportResult(${index}, '${m.player1}')">${m.player1} Wins</button>
         <button class="btn btn-success" onclick="reportResult(${index}, '${m.player2}')">${m.player2} Wins</button>
