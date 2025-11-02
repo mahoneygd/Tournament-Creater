@@ -175,13 +175,14 @@ function renderQueue() {
 function renderMatches() {
     const matchArea = document.getElementById("matchArea");
     matchArea.innerHTML = "";
-
+    activeMatches.sort((a, b) => (a.table || 0) - (b.table || 0));
     activeMatches.forEach((m, index) => {
         const card = document.createElement("div");
-        card.className = "card mb-3";
+        matchArea.classList.add("row");
+        card.className = "col-12 col-md-6 card mb-2";
         card.innerHTML = `
       <div class="card-body">
-        <h5 class="card-title">Match ${index + 1} — Table: ${m.table}</h5>
+        <h5 class="card-title">Table: ${m.table}</h5>
         <p class="card-text">${m.player1} vs ${m.player2}</p>
         <button class="btn btn-success me-2" onclick="reportResult(${index}, '${m.player1}')">${m.player1} Wins</button>
         <button class="btn btn-success" onclick="reportResult(${index}, '${m.player2}')">${m.player2} Wins</button>
@@ -193,9 +194,12 @@ function renderMatches() {
 
 function renderStandings() {
     const standingsBody = document.getElementById("standingsBody");
-    const sorted = Object.entries(standings).sort(
-        (a, b) => b[1].wins - a[1].wins
-    );
+    const sorted = Object.entries(standings).sort((a, b) => {
+        const pa = a[1].points || 0, pb = b[1].points || 0;
+        if (pb !== pa) return pb - pa;
+        const wa = a[1].wins || 0, wb = b[1].wins || 0;
+        return wb - wa;
+    });
     standingsBody.innerHTML = "";
     sorted.forEach(([player, stats], i) => {
         const tr = document.createElement("tr");
