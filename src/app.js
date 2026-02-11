@@ -3,7 +3,7 @@ let queue = [];
 let activeMatches = [];
 let standings = {};
 let tables = 6;
-let maxConsecutiveWins = 2; // New rule: max amount of games won in a row before being kicked off
+let maxConsecutiveWins = 3; // New rule: max amount of games won in a row before being kicked off
 let history = []; // For undo functionality
 let availableTables = Array.from({ length: tables }, (_, i) => i + 1);
 
@@ -13,7 +13,7 @@ function startTournament() {
 
     players = input.split("\n").map((name) => name.trim()).filter(Boolean);
     tables = parseInt(document.getElementById("activeGames").value) || 1;
-    maxConsecutiveWins = parseInt(document.getElementById("maxConsecutiveWins").value);
+    maxConsecutiveWins = parseInt(document.getElementById("maxConsecutiveWins").value) || 3;
 
     if (players.length < 2) return alert("At least two players are required to start the tournament.");
     if (tables < 1) {
@@ -35,14 +35,13 @@ function startTournament() {
     players.forEach((p) => {
         standings[p] = { wins: 0, points: 0, games: 0, consecutive: 0, players_played: [] };
     });
-    history.push(JSON.stringify({ players, queue, activeMatches, standings }))
+    history.push(JSON.stringify({ players, queue, activeMatches, standings, maxConsecutiveWins }));
 
     document.getElementById("playerEntry").hidden = true;
 
     startNextMatches();
     render();
-    //   console.log("Max Consecutive Wins set to:", maxConsecutiveWins);
-
+    saveTournament();
 }
 
 function addPlayer() {
@@ -183,7 +182,7 @@ function renderMatches() {
         card.innerHTML = `
       <div class="card-body">
         <h5 class="card-title">Table: ${m.table}</h5>
-        <p class="card-text">${m.player1} vs ${m.player2}</p>
+        <p class="card-text">${m.player1} (${standings[m.player1]?.consecutive || 0}) vs ${m.player2}</p>
         <button class="btn btn-success me-2" onclick="reportResult(${index}, '${m.player1}')">${m.player1} Wins</button>
         <button class="btn btn-success" onclick="reportResult(${index}, '${m.player2}')">${m.player2} Wins</button>
       </div>
