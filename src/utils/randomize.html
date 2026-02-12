@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournament Randomizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px 5px 5px 0;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .container {
+            margin: 20px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tournament Randomizer</h1>
+
+    <div class="container">
+        <label for="inputNames">Enter names (one per line):</label>
+        <textarea id="inputNames" rows="8" placeholder="John&#10;Jane&#10;Bob&#10;Alice"></textarea>
+    </div>
+
+    <div class="container">
+        <button type="submit" onclick="randomizeNames()">Randomize Names</button>
+        <button type="submit" onclick="randomizePairs()">Randomize into Pairs</button>
+        <button type="submit" class="btn btn-success me-2 float-end" onclick="window.location.href='../index.html'">Back</button>
+    </div>
+
+    <div class="container">
+        <label for="outputNames">Output:</label>
+        <textarea id="outputNames" rows="8" placeholder="Results will appear here..."></textarea>
+    </div>
+
+    <script>
+        function randomizeNames() {
+            const input = document.getElementById('inputNames').value;
+            const names = input.trim().split('\n').filter(n => n.trim());
+
+            if (names.length === 0) {
+                alert('Please enter at least one name');
+                return;
+            }
+
+            const shuffled = [...names].sort(() => Math.random() - 0.5);
+            document.getElementById('outputNames').value = shuffled.join('\n');
+        }
+
+        function randomizePairs() {
+            const input = document.getElementById('inputNames').value;
+            const names = input.trim().split('\n').filter(n => n.trim());
+
+            if (names.length < 2) {
+                alert('Please enter at least two names');
+                return;
+            }
+
+            const shuffled = [...names].sort(() => Math.random() - 0.5);
+            const pairs = [];
+
+            for (let i = 0; i < shuffled.length; i += 2) {
+                if (i + 1 < shuffled.length) {
+                    pairs.push(`${shuffled[i]}-${shuffled[i + 1]}`);
+                } else {
+                    pairs.push(`${shuffled[i]} (no pair)`);
+                }
+            }
+
+            document.getElementById('outputNames').value = pairs.join('\n');
+        }
+    </script>
+</body>
+</html>
